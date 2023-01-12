@@ -1,5 +1,5 @@
 import './sass/style.scss';
-import App from './ts/App';
+import App from './ts/components/App';
 
 declare global {
   interface Window {
