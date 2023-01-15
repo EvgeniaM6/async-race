@@ -1,3 +1,3 @@
-import { path, serverBaseUrl } from './path';
+import { headers, paths, queryParameters, serverBaseUrl, statuses } from './path';
 
-export { serverBaseUrl, path };
+export { serverBaseUrl, paths, headers, queryParameters, statuses };
