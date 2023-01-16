@@ -5,3 +5,8 @@ export enum EMethod {
   Delete = 'DELETE',
   Patch = 'PATCH',
 }
+
+export enum ERespStatusCode {
+  Ok = 200,
+  Broken = 500,
+}

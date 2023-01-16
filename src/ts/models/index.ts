@@ -1,4 +1,4 @@
-import { ICar } from './car.model';
-import { EMethod } from './request.model';
+import { ICar, ICarDriveResult, ICarObj, ICarProps } from './car.model';
+import { EMethod, ERespStatusCode } from './request.model';
 
-export { EMethod, ICar };
+export { EMethod, ICar, ICarObj, ICarProps, ICarDriveResult, ERespStatusCode };
