@@ -1,19 +1,23 @@
-import { headers, paths, queryParameters, serverBaseUrl, statuses } from '../constants';
-import { EMethod, ICar } from '../models';
+import { headers, paths, queryParameters, serverBaseUrl } from '../constants';
+import { EMethod, ERespStatusCode, ICar, ICarDriveResult, ICarObj, ICarProps } from '../models';
 
 export default class DataBase {
+  cars: ICarObj[] = [];
+  winner = -1;
+
   constructor() {
     // console.log('garage=', paths.garage);
     // this.createCar('New Red Car', '#000000');
     // this.updateCar(6, 'New Red Car', '#ffffff');
-    // this.getCars(1, 5);
+    this.getCars(1, 7).then((respose) => (this.cars = respose));
     // this.getCar(1);
     // this.deleteCar(5);
-    // this.getCars(1, 5);
+    // this.getCars(1, 7).then((respose) => (this.cars = respose));
+    // this.startOrStopCar(1, statuses.started);
     // this.startOrStopCar(1, statuses.drive);
   }
 
-  async getCars(page?: number, limit?: number): Promise<void> {
+  async getCars(page?: number, limit?: number): Promise<ICarObj[]> {
     const queryParams = new URLSearchParams();
     if (page) {
       queryParams.set(queryParameters.page, `${page}`);
@@ -28,63 +32,63 @@ export default class DataBase {
       url += `?${queryParamsStr}`;
     }
 
-    const response = await fetch(url, {
-      method: EMethod.Get,
-    });
-
     try {
+      const response = await fetch(url);
+      console.log('getCars response=', response);
+      console.log('total=', response.headers.get('X-Total-Count'));
       const cars = await response.json();
       console.log('cars=', cars);
+      return cars;
     } catch (error) {
       console.error(error);
+      return [];
     }
   }
 
-  async getCar(id: number): Promise<void> {
+  async getCar(id: number): Promise<ICarObj | null> {
     const url = `${serverBaseUrl}${paths.garage}/${id}`;
 
-    const response = await fetch(url, {
-      method: EMethod.Get,
-    });
-
     try {
+      const response = await fetch(url);
       const car = await response.json();
       console.log('car=', car);
+      return car;
     } catch (error) {
       console.error(error);
+      return null;
     }
   }
 
-  async createCar(name: string, color: string): Promise<void> {
+  async createCar(name: string, color: string): Promise<ICar | null> {
     const newCar: ICar = {
       name: name,
       color: color,
     };
 
-    const response = await fetch(`${serverBaseUrl}${paths.garage}`, {
-      method: EMethod.Post,
-      headers: {
-        'Content-Type': headers.json,
-      },
-      body: JSON.stringify(newCar),
-    });
-
     try {
+      const response = await fetch(`${serverBaseUrl}${paths.garage}`, {
+        method: EMethod.Post,
+        headers: {
+          'Content-Type': headers.json,
+        },
+        body: JSON.stringify(newCar),
+      });
       const car = await response.json();
-      console.log('car=', car);
+      console.log('create car=', car);
+      return car;
     } catch (error) {
       console.error(error);
+      return null;
     }
   }
 
   async deleteCar(id: number): Promise<void> {
-    const response = await fetch(`${serverBaseUrl}${paths.garage}/${id}`, {
-      method: EMethod.Delete,
-    });
-
     try {
+      const response = await fetch(`${serverBaseUrl}${paths.garage}/${id}`, {
+        method: EMethod.Delete,
+      });
       const car = await response.json();
-      console.log('car=', car);
+      console.log('delete car=', car);
     } catch (error) {
       console.error(error);
     }
@@ -96,15 +100,14 @@ export default class DataBase {
       color: color,
     };
 
-    const response = await fetch(`${serverBaseUrl}${paths.garage}/${id}`, {
-      method: EMethod.Put,
-      headers: {
-        'Content-Type': headers.json,
-      },
-      body: JSON.stringify(updateCar),
-    });
-
     try {
+      const response = await fetch(`${serverBaseUrl}${paths.garage}/${id}`, {
+        method: EMethod.Put,
+        headers: {
+          'Content-Type': headers.json,
+        },
+        body: JSON.stringify(updateCar),
+      });
       const car = await response.json();
       console.log('car=', car);
     } catch (error) {
@@ -112,20 +115,54 @@ export default class DataBase {
     }
   }
 
-  async startOrStopCar(id: number, status: string): Promise<void> {
+  async createEnginePromise(id: number, status: string): Promise<Response> {
+    console.log('status=', status);
     const queryParams = new URLSearchParams();
     queryParams.set(queryParameters.id, `${id}`);
     queryParams.set(queryParameters.status, status);
     const url = `${serverBaseUrl}${paths.engine}?${queryParams.toString()}`;
 
-    try {
-      const response = await fetch(url, {
-        method: EMethod.Patch,
-      });
-      const carProps = await response.json();
-      console.log('carProps=', carProps);
-    } catch (error) {
-      console.error(error);
+    const promise = fetch(url, {
+      method: EMethod.Patch,
+    });
+    return promise;
+  }
+
+  async driveCar(promise: Promise<Response>, i: number, time?: number, isRace?: boolean): Promise<void> {
+    const response = await promise;
+    console.log('i=', i, 'time=', time, 'isRace=', isRace);
+    // console.log('i=', i, 'response=', response, 'time=', time, 'isRace=', isRace);
+    if (!response) return;
+    console.log('status=', response.status);
+
+    switch (response.status) {
+      case ERespStatusCode.Ok: {
+        if (time && isRace && !(this.winner + 1)) {
+          this.winner = i;
+          this.showWinner(time);
+        }
+        const respObj = await response.json();
+        this.drive(respObj);
+        break;
+      }
+      case ERespStatusCode.Broken:
+        this.brokenEngine();
+        break;
+      default:
+        break;
     }
+  }
+
+  brokenEngine() {
+    console.log('brokenEngine! stop animation!');
+  }
+
+  drive(respObj: ICarProps | ICarDriveResult) {
+    // console.log('respObj=', respObj);
+  }
+
+  showWinner(time: number): void {
+    const winnerObj = this.cars.find((car, index) => index === this.winner);
+    console.log(1, 'winner=', winnerObj, `${time / 1000}s`);
   }
 }
