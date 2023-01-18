@@ -8,5 +8,6 @@ export enum EMethod {
 
 export enum ERespStatusCode {
   Ok = 200,
+  NotFound = 404,
   Broken = 500,
 }

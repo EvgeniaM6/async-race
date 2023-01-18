@@ -1,6 +1,6 @@
 import { carTemplate } from './carTemplate';
 import { carActs, inputTypes } from './inputType';
-import { limitCarsPerPage, pages } from './pages';
+import { limitCarsPerPage, mssInSec, pages } from './pages';
 import { headers, paths, queryParameters, serverBaseUrl, statuses } from './path';
 
 export {
@@ -9,6 +9,7 @@ export {
   headers,
   inputTypes,
   limitCarsPerPage,
+  mssInSec,
   pages,
   paths,
   queryParameters,
