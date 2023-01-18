@@ -1,5 +1,5 @@
 import { headers, paths, queryParameters, serverBaseUrl } from '../constants';
-import { EMethod, ERespStatusCode, ICar, ICarDriveResult, ICarObj, ICarProps } from '../models';
+import { EMethod, ERespStatusCode, ICar, ICarDriveResult, ICarObj, ICarProps, ICars } from '../models';
 
 export default class DataBase {
   cars: ICarObj[] = [];
@@ -9,7 +9,7 @@ export default class DataBase {
     // console.log('garage=', paths.garage);
     // this.createCar('New Red Car', '#000000');
     // this.updateCar(6, 'New Red Car', '#ffffff');
-    this.getCars(1, 7).then((respose) => (this.cars = respose));
+    // this.getCars(1, 7).then((respose) => (this.cars = respose));
     // this.getCar(1);
     // this.deleteCar(5);
     // this.getCars(1, 7).then((respose) => (this.cars = respose));
@@ -17,7 +17,7 @@ export default class DataBase {
     // this.startOrStopCar(1, statuses.drive);
   }
 
-  async getCars(page?: number, limit?: number): Promise<ICarObj[]> {
+  async getCars(page?: number, limit?: number): Promise<ICars> {
     const queryParams = new URLSearchParams();
     if (page) {
       queryParams.set(queryParameters.page, `${page}`);
@@ -35,13 +35,24 @@ export default class DataBase {
     try {
       const response = await fetch(url);
       console.log('getCars response=', response);
-      console.log('total=', response.headers.get('X-Total-Count'));
+      const carsTotalStr = response.headers.get('X-Total-Count');
+      const carsTotalAmount = carsTotalStr ? +carsTotalStr : 0;
+      console.log('total=', carsTotalAmount);
       const cars = await response.json();
       console.log('cars=', cars);
-      return cars;
+
+      const carsObj = {
+        total: carsTotalAmount,
+        carsArr: cars,
+      };
+      return carsObj;
     } catch (error) {
       console.error(error);
-      return [];
+      const carsObj = {
+        total: 0,
+        carsArr: [],
+      };
+      return carsObj;
     }
   }
 
@@ -128,7 +139,13 @@ export default class DataBase {
     return promise;
   }
 
-  async driveCar(promise: Promise<Response>, i: number, time?: number, isRace?: boolean): Promise<void> {
+  async driveCar(
+    promise: Promise<Response>,
+    i: number,
+    carImage: HTMLElement,
+    time?: number,
+    isRace?: boolean
+  ): Promise<void> {
     const response = await promise;
     console.log('i=', i, 'time=', time, 'isRace=', isRace);
     // console.log('i=', i, 'response=', response, 'time=', time, 'isRace=', isRace);
@@ -146,15 +163,16 @@ export default class DataBase {
         break;
       }
       case ERespStatusCode.Broken:
-        this.brokenEngine();
+        this.brokenEngine(carImage);
         break;
       default:
         break;
     }
   }
 
-  brokenEngine() {
+  brokenEngine(carImage: HTMLElement) {
     console.log('brokenEngine! stop animation!');
+    carImage.classList.add('pause');
   }
 
   drive(respObj: ICarProps | ICarDriveResult) {
