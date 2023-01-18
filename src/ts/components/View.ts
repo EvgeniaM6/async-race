@@ -1,4 +1,4 @@
-import { carActs, carTemplate, inputTypes, limitCarsPerPage, pages, statuses } from '../constants';
+import { carActs, carTemplate, inputTypes, limitCarsPerPage, mssInSec, pages, statuses } from '../constants';
 import { ICarObj, IUpdInputElements } from '../models';
 import { createElem } from '../utilities';
 
@@ -254,19 +254,37 @@ export default class View {
   }
 
   changePage(isNext?: boolean): void {
-    const currentPageNum = this.currentPage;
     if (isNext) {
       const pagesAmount = Math.ceil(this.totalCars / limitCarsPerPage);
-      if (currentPageNum + 1 > pagesAmount) return;
+      if (this.currentPage + 1 > pagesAmount) return;
       this.currentPage++;
     } else if (this.currentPage > 1) {
       this.currentPage--;
+    } else {
+      return;
     }
-    if (currentPageNum === this.currentPage) return;
     this.updateGarage();
   }
 
   showWinner(carTitle: string, time: number): void {
-    //
+    const messageBckgr = createElem('div', 'message');
+
+    const messageWrapper = createElem('div', 'message__wrapper', messageBckgr);
+    const messageWindow = createElem('div', 'message__window mssg', messageWrapper);
+    const message = `Your fastest car is ${carTitle}! Time: ${(time / mssInSec).toFixed(3)} sec`;
+    createElem('div', 'mssg__text', messageWindow, message);
+
+    createElem('button', 'mssg__btn', messageWindow, 'Super!');
+    messageBckgr.addEventListener('click', (e) => this.closeMessage(e));
+
+    document.body.append(messageBckgr);
+  }
+
+  closeMessage(event: Event): void {
+    event.stopPropagation();
+    if (!event.target || !event.currentTarget) return;
+    if ((event.target as HTMLElement).classList.contains('mssg__btn')) {
+      (event.currentTarget as HTMLElement).remove();
+    }
   }
 }
