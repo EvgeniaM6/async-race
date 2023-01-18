@@ -24,7 +24,7 @@ export default class Game {
     this.startAnimation(carImage);
 
     const indexCarInCarsArr = typeof indexCarInArr === 'undefined' ? -1 : indexCarInArr;
-    window.app.dataBase.driveCar(drivePromise, indexCarInCarsArr, carImage, time, isRace);
+    window.app.dataBase.driveCar(drivePromise, indexCarInCarsArr, carImage, id, time, isRace);
   }
 
   async stopCar(id: number): Promise<void> {

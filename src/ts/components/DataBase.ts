@@ -1,5 +1,5 @@
-import { headers, paths, queryParameters, serverBaseUrl } from '../constants';
-import { EMethod, ERespStatusCode, ICar, ICarObj, ICars } from '../models';
+import { headers, mssInSec, paths, queryParameters, serverBaseUrl } from '../constants';
+import { EMethod, ERespStatusCode, ICar, ICarObj, ICars, IWinner } from '../models';
 
 export default class DataBase {
   winner = -1;
@@ -120,6 +120,7 @@ export default class DataBase {
     promise: Promise<Response>,
     idxCarInCarsArr: number,
     carImage: HTMLElement,
+    carId: number,
     time?: number,
     isRace?: boolean
   ): Promise<void> {
@@ -131,6 +132,7 @@ export default class DataBase {
         if (time && isRace && !(this.winner + 1)) {
           this.winner = idxCarInCarsArr;
           this.showWinner(time);
+          this.addWinner(carId, time);
         }
         break;
       }
@@ -150,6 +152,51 @@ export default class DataBase {
     const winnerObj = window.app.view.cars.find((car, index) => index === this.winner);
     if (winnerObj) {
       window.app.view.showWinner(winnerObj.name, time);
+    }
+  }
+
+  async addWinner(id: number, time: number): Promise<void> {
+    const url = `${serverBaseUrl}${paths.winners}/${id}`;
+    const timeInSec = +(time / mssInSec).toFixed(2);
+
+    const response = await fetch(url);
+    switch (response.status) {
+      case ERespStatusCode.Ok:
+        {
+          const winner: IWinner = await response.json();
+          const updateWinner = {
+            wins: winner.wins + 1,
+            time: timeInSec,
+          };
+          await fetch(url, {
+            method: EMethod.Put,
+            headers: {
+              'Content-Type': headers.json,
+            },
+            body: JSON.stringify(updateWinner),
+          });
+        }
+        break;
+      case ERespStatusCode.NotFound:
+        {
+          const url = `${serverBaseUrl}${paths.winners}`;
+          const createWinner = {
+            id: id,
+            wins: 1,
+            time: timeInSec,
+          };
+          const updResp = await fetch(url, {
+            method: EMethod.Post,
+            headers: {
+              'Content-Type': headers.json,
+            },
+            body: JSON.stringify(createWinner),
+          });
+        }
+        break;
+
+      default:
+        break;
     }
   }
 }
