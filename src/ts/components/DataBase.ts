@@ -2,20 +2,7 @@ import { headers, paths, queryParameters, serverBaseUrl } from '../constants';
 import { EMethod, ERespStatusCode, ICar, ICarDriveResult, ICarObj, ICarProps, ICars } from '../models';
 
 export default class DataBase {
-  cars: ICarObj[] = [];
   winner = -1;
-
-  constructor() {
-    // console.log('garage=', paths.garage);
-    // this.createCar('New Red Car', '#000000');
-    // this.updateCar(6, 'New Red Car', '#ffffff');
-    // this.getCars(1, 7).then((respose) => (this.cars = respose));
-    // this.getCar(1);
-    // this.deleteCar(5);
-    // this.getCars(1, 7).then((respose) => (this.cars = respose));
-    // this.startOrStopCar(1, statuses.started);
-    // this.startOrStopCar(1, statuses.drive);
-  }
 
   async getCars(page?: number, limit?: number): Promise<ICars> {
     const queryParams = new URLSearchParams();
@@ -34,12 +21,9 @@ export default class DataBase {
 
     try {
       const response = await fetch(url);
-      console.log('getCars response=', response);
       const carsTotalStr = response.headers.get('X-Total-Count');
       const carsTotalAmount = carsTotalStr ? +carsTotalStr : 0;
-      console.log('total=', carsTotalAmount);
       const cars = await response.json();
-      console.log('cars=', cars);
 
       const carsObj = {
         total: carsTotalAmount,
@@ -62,7 +46,6 @@ export default class DataBase {
     try {
       const response = await fetch(url);
       const car = await response.json();
-      console.log('car=', car);
       return car;
     } catch (error) {
       console.error(error);
@@ -85,7 +68,6 @@ export default class DataBase {
         body: JSON.stringify(newCar),
       });
       const car = await response.json();
-      console.log('create car=', car);
       return car;
     } catch (error) {
       console.error(error);
@@ -99,7 +81,6 @@ export default class DataBase {
         method: EMethod.Delete,
       });
       const car = await response.json();
-      console.log('delete car=', car);
     } catch (error) {
       console.error(error);
     }
@@ -120,14 +101,12 @@ export default class DataBase {
         body: JSON.stringify(updateCar),
       });
       const car = await response.json();
-      console.log('car=', car);
     } catch (error) {
       console.error(error);
     }
   }
 
   async createEnginePromise(id: number, status: string): Promise<Response> {
-    console.log('status=', status);
     const queryParams = new URLSearchParams();
     queryParams.set(queryParameters.id, `${id}`);
     queryParams.set(queryParameters.status, status);
@@ -141,21 +120,18 @@ export default class DataBase {
 
   async driveCar(
     promise: Promise<Response>,
-    i: number,
+    idxCarInCarsArr: number,
     carImage: HTMLElement,
     time?: number,
     isRace?: boolean
   ): Promise<void> {
     const response = await promise;
-    console.log('i=', i, 'time=', time, 'isRace=', isRace);
-    // console.log('i=', i, 'response=', response, 'time=', time, 'isRace=', isRace);
     if (!response) return;
-    console.log('status=', response.status);
 
     switch (response.status) {
       case ERespStatusCode.Ok: {
         if (time && isRace && !(this.winner + 1)) {
-          this.winner = i;
+          this.winner = idxCarInCarsArr;
           this.showWinner(time);
         }
         const respObj = await response.json();
@@ -171,7 +147,6 @@ export default class DataBase {
   }
 
   brokenEngine(carImage: HTMLElement) {
-    console.log('brokenEngine! stop animation!');
     carImage.classList.add('pause');
   }
 
@@ -180,7 +155,7 @@ export default class DataBase {
   }
 
   showWinner(time: number): void {
-    const winnerObj = this.cars.find((car, index) => index === this.winner);
+    const winnerObj = window.app.view.cars.find((car, index) => index === this.winner);
     console.log(1, 'winner=', winnerObj, `${time / 1000}s`);
   }
 }

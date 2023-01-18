@@ -13,6 +13,7 @@ export default class View {
   pageLimit = 7;
   cars: ICarObj[] = [];
   updateInputs: IUpdInputElements = {};
+  carImageArr: HTMLElement[] = [];
 
   start(): void {
     this.drawApp();
@@ -20,7 +21,6 @@ export default class View {
   }
 
   drawApp(): void {
-    console.log('drawApp');
     const body = document.querySelector('body');
     const appContainer = createElem('div', 'app', body);
 
@@ -123,6 +123,7 @@ export default class View {
 
   drawCars(): void {
     this.carsBlock.innerHTML = '';
+    this.carImageArr = [];
     this.cars.forEach((car) => {
       const carBlock = createElem('div', 'car') as HTMLElement;
       if (car.id === this.selectedId) {
@@ -139,8 +140,8 @@ export default class View {
 
       const manageBlock = createElem('div', 'car__manage', carBlock) as HTMLElement;
       const manageBtns = createElem('div', 'car__manage-btns drive-btns', manageBlock) as HTMLElement;
-      const startBtn = createElem('button', 'drive-btns__start', manageBtns, 'A') as HTMLElement;
-      const stopBtn = createElem('button', 'drive-btns__stop', manageBtns, 'B') as HTMLElement;
+      const startBtn = createElem('button', 'drive-btns__start', manageBtns, 'go!') as HTMLElement;
+      const stopBtn = createElem('button', 'drive-btns__stop', manageBtns, 'return') as HTMLElement;
 
       const carImageBlock = createElem('div', 'car__image-block', manageBlock);
       const carImage = createElem('div', 'car__image', carImageBlock);
@@ -152,6 +153,7 @@ export default class View {
         stopBtn.addEventListener('click', () => this.stopCar(car, carImage));
       }
 
+      this.carImageArr.push(carImage);
       this.carsBlock.append(carBlock);
     });
   }
@@ -172,17 +174,13 @@ export default class View {
   }
 
   startCar(car: ICarObj, carImage: HTMLElement): void {
-    window.app.game.startCar(car.id, carImage).then(() => {
-      //
-    });
-    // const carSvg = carBlock.querySelector('.car-svg');
-    // if (carSvg) {
-    //   carSvg.classList.add('animated');
-    // }
+    window.app.game.startCar(car.id, carImage);
   }
 
   stopCar(car: ICarObj, carImage: HTMLElement): void {
-    //
+    carImage.classList.remove('drive');
+    carImage.classList.remove('pause');
+    window.app.dataBase.createEnginePromise(car.id, statuses.stopped);
   }
 
   drawWinners(): void {
@@ -196,7 +194,6 @@ export default class View {
     const [titleValue, colorValue] = [titleInputEl, colorInputEl].map(
       (inputEl): string => (inputEl as HTMLInputElement).value
     );
-    console.log('formEl=', titleValue, colorValue);
 
     if (isCreate) {
       this.createCar(titleValue, colorValue, titleInputEl);
@@ -231,17 +228,18 @@ export default class View {
       this.cars = resp.carsArr;
       this.garageTotal.textContent = `${resp.total}`;
       this.garagePageNum.textContent = `${this.currentPage}`;
-      console.log('this.cars=', this.cars);
       this.drawCars();
     });
   }
 
   race(): void {
-    //
+    window.app.game.race(this.cars);
   }
 
   reset(): void {
-    //
+    this.cars.forEach((car, index) => {
+      this.stopCar(car, this.carImageArr[index]);
+    });
   }
 
   generateCars(): void {
