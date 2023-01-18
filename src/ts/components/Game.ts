@@ -45,10 +45,6 @@ export default class Game {
     });
   }
 
-  async reset(carsArr: ICarObj[]): Promise<void> {
-    carsArr.forEach((car) => this.stopCar(car.id));
-  }
-
   prepareAnimation(animationTime: number, carImage: HTMLElement): void {
     carImage.style.animationDuration = `${Math.round(animationTime / 1000)}s`;
   }

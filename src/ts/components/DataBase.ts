@@ -1,5 +1,5 @@
 import { headers, paths, queryParameters, serverBaseUrl } from '../constants';
-import { EMethod, ERespStatusCode, ICar, ICarDriveResult, ICarObj, ICarProps, ICars } from '../models';
+import { EMethod, ERespStatusCode, ICar, ICarObj, ICars } from '../models';
 
 export default class DataBase {
   winner = -1;
@@ -77,10 +77,9 @@ export default class DataBase {
 
   async deleteCar(id: number): Promise<void> {
     try {
-      const response = await fetch(`${serverBaseUrl}${paths.garage}/${id}`, {
+      await fetch(`${serverBaseUrl}${paths.garage}/${id}`, {
         method: EMethod.Delete,
       });
-      const car = await response.json();
     } catch (error) {
       console.error(error);
     }
@@ -93,14 +92,13 @@ export default class DataBase {
     };
 
     try {
-      const response = await fetch(`${serverBaseUrl}${paths.garage}/${id}`, {
+      await fetch(`${serverBaseUrl}${paths.garage}/${id}`, {
         method: EMethod.Put,
         headers: {
           'Content-Type': headers.json,
         },
         body: JSON.stringify(updateCar),
       });
-      const car = await response.json();
     } catch (error) {
       console.error(error);
     }
@@ -134,8 +132,6 @@ export default class DataBase {
           this.winner = idxCarInCarsArr;
           this.showWinner(time);
         }
-        const respObj = await response.json();
-        this.drive(respObj);
         break;
       }
       case ERespStatusCode.Broken:
@@ -150,12 +146,10 @@ export default class DataBase {
     carImage.classList.add('pause');
   }
 
-  drive(respObj: ICarProps | ICarDriveResult) {
-    // console.log('respObj=', respObj);
-  }
-
   showWinner(time: number): void {
     const winnerObj = window.app.view.cars.find((car, index) => index === this.winner);
-    console.log(1, 'winner=', winnerObj, `${time / 1000}s`);
+    if (winnerObj) {
+      window.app.view.showWinner(winnerObj.name, time);
+    }
   }
 }

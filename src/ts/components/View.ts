@@ -1,4 +1,4 @@
-import { carActs, carTemplate, inputTypes, pages, statuses } from '../constants';
+import { carActs, carTemplate, inputTypes, limitCarsPerPage, pages, statuses } from '../constants';
 import { ICarObj, IUpdInputElements } from '../models';
 import { createElem } from '../utilities';
 
@@ -10,7 +10,7 @@ export default class View {
   garagePageNum = createElem('span', 'garage__page-num') as HTMLElement;
   carsBlock = createElem('div', 'garage__cars cars') as HTMLElement;
   currentPage = 1;
-  pageLimit = 7;
+  totalCars = 0;
   cars: ICarObj[] = [];
   updateInputs: IUpdInputElements = {};
   carImageArr: HTMLElement[] = [];
@@ -66,6 +66,12 @@ export default class View {
     garagePage.append(this.garagePageNum);
 
     garageBlock.append(this.carsBlock);
+
+    const pageBtnsBlock = createElem('div', 'page-btns', this.main) as HTMLElement;
+    const pageBtnPrev = createElem('button', 'page-btns__prev page-btn', pageBtnsBlock, 'prev ←') as HTMLButtonElement;
+    pageBtnPrev.addEventListener('click', () => this.changePage());
+    const pageBtnNext = createElem('button', 'page-btns__next page-btn', pageBtnsBlock, '→ next') as HTMLButtonElement;
+    pageBtnNext.addEventListener('click', () => this.changePage(true));
 
     this.updateGarage();
   }
@@ -224,8 +230,9 @@ export default class View {
   }
 
   updateGarage(): void {
-    window.app.dataBase.getCars(this.currentPage, this.pageLimit).then((resp) => {
+    window.app.dataBase.getCars(this.currentPage, limitCarsPerPage).then((resp) => {
       this.cars = resp.carsArr;
+      this.totalCars = resp.total;
       this.garageTotal.textContent = `${resp.total}`;
       this.garagePageNum.textContent = `${this.currentPage}`;
       this.drawCars();
@@ -243,6 +250,23 @@ export default class View {
   }
 
   generateCars(): void {
+    //
+  }
+
+  changePage(isNext?: boolean): void {
+    const currentPageNum = this.currentPage;
+    if (isNext) {
+      const pagesAmount = Math.ceil(this.totalCars / limitCarsPerPage);
+      if (currentPageNum + 1 > pagesAmount) return;
+      this.currentPage++;
+    } else if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+    if (currentPageNum === this.currentPage) return;
+    this.updateGarage();
+  }
+
+  showWinner(carTitle: string, time: number): void {
     //
   }
 }
