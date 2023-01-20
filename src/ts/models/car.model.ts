@@ -20,3 +20,7 @@ export interface ICarProps {
 export interface ICarDriveResult {
   success: boolean;
 }
+
+export interface ICarElemObj {
+  [key: string]: HTMLElement;
+}
