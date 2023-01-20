@@ -1,5 +1,5 @@
-import { headers, mssInSec, paths, queryParameters, serverBaseUrl } from '../constants';
-import { EMethod, ERespStatusCode, ICar, ICarObj, ICars, IWinner } from '../models';
+import { headers, MSS_IN_SEC, paths, queryParameters, SERVER_BASE_URL } from '../constants';
+import { EMethod, ERespStatusCode, ICar, ICarObj, ICars, IWinner, IWinners } from '../models';
 
 export default class DataBase {
   winner = -1;
@@ -14,7 +14,7 @@ export default class DataBase {
     }
     const queryParamsStr = queryParams.toString();
 
-    let url = `${serverBaseUrl}${paths.garage}`;
+    let url = `${SERVER_BASE_URL}${paths.garage}`;
     if (queryParamsStr) {
       url += `?${queryParamsStr}`;
     }
@@ -41,7 +41,7 @@ export default class DataBase {
   }
 
   async getCar(id: number): Promise<ICarObj | null> {
-    const url = `${serverBaseUrl}${paths.garage}/${id}`;
+    const url = `${SERVER_BASE_URL}${paths.garage}/${id}`;
 
     try {
       const response = await fetch(url);
@@ -60,7 +60,7 @@ export default class DataBase {
     };
 
     try {
-      const response = await fetch(`${serverBaseUrl}${paths.garage}`, {
+      const response = await fetch(`${SERVER_BASE_URL}${paths.garage}`, {
         method: EMethod.Post,
         headers: {
           'Content-Type': headers.json,
@@ -77,7 +77,7 @@ export default class DataBase {
 
   async deleteCar(id: number): Promise<void> {
     try {
-      await fetch(`${serverBaseUrl}${paths.garage}/${id}`, {
+      await fetch(`${SERVER_BASE_URL}${paths.garage}/${id}`, {
         method: EMethod.Delete,
       });
     } catch (error) {
@@ -92,7 +92,7 @@ export default class DataBase {
     };
 
     try {
-      await fetch(`${serverBaseUrl}${paths.garage}/${id}`, {
+      await fetch(`${SERVER_BASE_URL}${paths.garage}/${id}`, {
         method: EMethod.Put,
         headers: {
           'Content-Type': headers.json,
@@ -108,7 +108,7 @@ export default class DataBase {
     const queryParams = new URLSearchParams();
     queryParams.set(queryParameters.id, `${id}`);
     queryParams.set(queryParameters.status, status);
-    const url = `${serverBaseUrl}${paths.engine}?${queryParams.toString()}`;
+    const url = `${SERVER_BASE_URL}${paths.engine}?${queryParams.toString()}`;
 
     const promise = fetch(url, {
       method: EMethod.Patch,
@@ -119,7 +119,6 @@ export default class DataBase {
   async driveCar(
     promise: Promise<Response>,
     idxCarInCarsArr: number,
-    carImage: HTMLElement,
     carId: number,
     time?: number,
     isRace?: boolean
@@ -137,14 +136,15 @@ export default class DataBase {
         break;
       }
       case ERespStatusCode.Broken:
-        this.brokenEngine(carImage);
+        this.brokenEngine(carId);
         break;
       default:
         break;
     }
   }
 
-  brokenEngine(carImage: HTMLElement) {
+  brokenEngine(carId: number) {
+    const carImage = window.app.view.carElemsArr[`img_${carId}`];
     carImage.classList.add('pause');
   }
 
@@ -155,43 +155,89 @@ export default class DataBase {
     }
   }
 
+  async getWinners(page?: number, limit?: number, sort?: string, order?: string): Promise<IWinners> {
+    const queryParams = new URLSearchParams();
+    if (page) {
+      queryParams.set(queryParameters.page, `${page}`);
+    }
+    if (limit) {
+      queryParams.set(queryParameters.limit, `${limit}`);
+    }
+    if (sort) {
+      queryParams.set(queryParameters.sort, `${sort}`);
+    }
+    if (order) {
+      queryParams.set(queryParameters.order, `${order}`);
+    }
+    const queryParamsStr = queryParams.toString();
+
+    let url = `${SERVER_BASE_URL}${paths.winners}`;
+    if (queryParamsStr) {
+      url += `?${queryParamsStr}`;
+    }
+
+    try {
+      const response = await fetch(url);
+      const winnersTotalStr = response.headers.get('X-Total-Count');
+      const winners = await response.json();
+      const winnersTotalAmount = winnersTotalStr ? +winnersTotalStr : winners.length;
+
+      const winnersObj = {
+        total: winnersTotalAmount,
+        winnersArr: winners,
+      };
+      return winnersObj;
+    } catch (error) {
+      console.error(error);
+      const winnersObj = {
+        total: 0,
+        winnersArr: [],
+      };
+      return winnersObj;
+    }
+  }
+
   async addWinner(id: number, time: number): Promise<void> {
-    const url = `${serverBaseUrl}${paths.winners}/${id}`;
-    const timeInSec = +(time / mssInSec).toFixed(2);
+    const url = `${SERVER_BASE_URL}${paths.winners}/${id}`;
+    const timeInSec = +(time / MSS_IN_SEC).toFixed(2);
 
     const response = await fetch(url);
+    console.log('addWinner response=', response);
     switch (response.status) {
       case ERespStatusCode.Ok:
         {
           const winner: IWinner = await response.json();
+          const minTime = Math.min(timeInSec, winner.time);
           const updateWinner = {
             wins: winner.wins + 1,
-            time: timeInSec,
+            time: minTime,
           };
-          await fetch(url, {
+          const respUpd = await fetch(url, {
             method: EMethod.Put,
             headers: {
               'Content-Type': headers.json,
             },
             body: JSON.stringify(updateWinner),
           });
+          console.log('respUpd=', respUpd);
         }
         break;
       case ERespStatusCode.NotFound:
         {
-          const url = `${serverBaseUrl}${paths.winners}`;
+          const url = `${SERVER_BASE_URL}${paths.winners}`;
           const createWinner = {
             id: id,
             wins: 1,
             time: timeInSec,
           };
-          const updResp = await fetch(url, {
+          const respCrt = await fetch(url, {
             method: EMethod.Post,
             headers: {
               'Content-Type': headers.json,
             },
             body: JSON.stringify(createWinner),
           });
+          console.log('respCrt=', respCrt);
         }
         break;
 
