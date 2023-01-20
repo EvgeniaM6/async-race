@@ -1,6 +1,15 @@
-import { carActs, carTemplate, inputTypes, limitCarsPerPage, mssInSec, pages, statuses } from '../constants';
-import { ICarElemObj, ICarObj, IUpdInputElements } from '../models';
-import { createElem } from '../utilities';
+import {
+  carActs,
+  garageBtns,
+  inputTypes,
+  LIMIT_CARS_PER_PAGE,
+  LIMIT_WINNERS_PER_PAGE,
+  MSS_IN_SEC,
+  pages,
+  statuses,
+} from '../constants';
+import { ICarElemObj, ICarObj, IUpdInputElements, IWinner } from '../models';
+import { carTemplate, createElem } from '../utilities';
 
 export default class View {
   main: HTMLElement = createElem('main', 'main');
@@ -10,12 +19,18 @@ export default class View {
   selectedId = 0;
   garageTotal = createElem('span', 'garage__title') as HTMLElement;
   garagePageNum = createElem('span', 'garage__page-num') as HTMLElement;
+  winnersTotal = createElem('span', 'winners__title') as HTMLElement;
+  winnersPageNum = createElem('span', 'winners__page-num') as HTMLElement;
   carsBlock = createElem('div', 'garage__cars cars') as HTMLElement;
+  winnersBlock = createElem('div', 'winners__cars') as HTMLElement;
   raceBtn = createElem('button', `btn-race`, null, 'race') as HTMLButtonElement;
   resetBtn = createElem('button', `btn-reset unable`, null, 'reset') as HTMLButtonElement;
-  currentPage = 1;
+  currentGaragePage = 1;
+  currentWinnersPage = 1;
   totalCars = 0;
+  totalWinners = 0;
   cars: ICarObj[] = [];
+  winners: IWinner[] = [];
   updateInputs: IUpdInputElements = {};
   carElemsArr: ICarElemObj = {};
 
@@ -68,11 +83,7 @@ export default class View {
 
     garageBlock.append(this.carsBlock);
 
-    const pageBtnsBlock = createElem('div', 'page-btns', this.main) as HTMLElement;
-    const pageBtnPrev = createElem('button', 'page-btns__prev page-btn', pageBtnsBlock, 'prev ←') as HTMLButtonElement;
-    pageBtnPrev.addEventListener('click', () => this.changePage());
-    const pageBtnNext = createElem('button', 'page-btns__next page-btn', pageBtnsBlock, '→ next') as HTMLButtonElement;
-    pageBtnNext.addEventListener('click', () => this.changePage(true));
+    this.drawPageBtns(this.main);
 
     this.updateGarage();
   }
@@ -134,53 +145,66 @@ export default class View {
     this.raceBtn.classList.remove('unable');
 
     this.cars.forEach((car) => {
-      const carBlock = createElem('div', 'car') as HTMLElement;
-      if (car.id === this.selectedId) {
-        carBlock.classList.add('selected');
-      }
-
-      const settingsBlock = createElem('div', 'car__settings', carBlock) as HTMLElement;
-      const settingsBtns = createElem('div', 'car__settings-btns car-btns', settingsBlock) as HTMLElement;
-      const selectBtn = createElem('button', 'car-btns__select', settingsBtns, 'select') as HTMLElement;
-      selectBtn.addEventListener('click', () => this.selectCar(car, carBlock));
-      const removeBtn = createElem('button', 'car-btns__remove', settingsBtns, 'remove') as HTMLElement;
-      removeBtn.addEventListener('click', () => this.removeCar(car.id));
-      createElem('div', 'car__title', settingsBlock, car.name) as HTMLElement;
-
-      const manageBlock = createElem('div', 'car__manage', carBlock) as HTMLElement;
-      const manageBtns = createElem('div', 'car__manage-btns drive-btns', manageBlock) as HTMLElement;
-      const startBtn = createElem(
-        'button',
-        'drive-btns__start car__btn-manage',
-        manageBtns,
-        'go!'
-      ) as HTMLButtonElement;
-      const startKey = `btn_start_${car.id}`;
-      this.carElemsArr[startKey] = startBtn;
-      const stopBtn = createElem(
-        'button',
-        'drive-btns__stop car__btn-manage',
-        manageBtns,
-        'return'
-      ) as HTMLButtonElement;
-      const stopKey = `btn_stop_${car.id}`;
-      this.carElemsArr[stopKey] = stopBtn;
-      stopBtn.classList.add('unable');
-
-      const carImageBlock = createElem('div', 'car__image-block', manageBlock);
-      const carImage = createElem('div', 'car__image', carImageBlock);
-      carImage.innerHTML = carTemplate;
-      const carImgKey = `img_${car.id}`;
-      this.carElemsArr[carImgKey] = carImage;
-      const svg = carImage.querySelector('.car-svg') as SVGElement;
-      if (svg) {
-        svg.style.fill = car.color;
-        startBtn.addEventListener('click', () => this.startCar(car, carImage));
-        stopBtn.addEventListener('click', () => this.stopCar(car));
-      }
-
-      this.carsBlock.append(carBlock);
+      this.drawCar(car);
     });
+  }
+
+  drawCar(car: ICarObj): void {
+    const carBlock = createElem('div', 'car') as HTMLElement;
+    if (car.id === this.selectedId) {
+      carBlock.classList.add('selected');
+    }
+
+    const settingsBlock = createElem('div', 'car__settings', carBlock) as HTMLElement;
+    const settingsBtns = createElem('div', 'car__settings-btns car-btns', settingsBlock) as HTMLElement;
+    const selectBtn = createElem('button', 'car-btns__select', settingsBtns, 'select') as HTMLElement;
+    selectBtn.addEventListener('click', () => this.selectCar(car, carBlock));
+    const removeBtn = createElem('button', 'car-btns__remove', settingsBtns, 'remove') as HTMLElement;
+    removeBtn.addEventListener('click', () => this.removeCar(car.id));
+    createElem('div', 'car__title', settingsBlock, car.name) as HTMLElement;
+
+    this.drawManageCarBlock(car, carBlock);
+
+    this.carsBlock.append(carBlock);
+  }
+
+  drawManageCarBlock(car: ICarObj, parentElem: HTMLElement): void {
+    const manageBlock = createElem('div', 'car__manage') as HTMLElement;
+    const manageBtns = createElem('div', 'car__manage-btns drive-btns', manageBlock) as HTMLElement;
+    garageBtns.forEach((btnData) => {
+      const btnElem = createElem(
+        'button',
+        `drive-btns__${btnData.btnType} car__btn-manage`,
+        manageBtns,
+        btnData.txtContent
+      ) as HTMLButtonElement;
+
+      this.carElemsArr[`btn_${btnData.btnType}_${car.id}`] = btnElem;
+
+      if (btnData.btnType === 'stop') {
+        btnElem.classList.add('unable');
+        btnElem.addEventListener('click', () => this.stopCar(car));
+      } else {
+        btnElem.addEventListener('click', () => this.startCar(car));
+      }
+    });
+
+    const carImageBlock = createElem('div', 'car__image-block', manageBlock);
+    const carImage = createElem('div', 'car__image', carImageBlock);
+    carImage.innerHTML = carTemplate(car.color);
+    this.carElemsArr[`img_${car.id}`] = carImage;
+
+    parentElem.append(manageBlock);
+  }
+
+  drawPageBtns(parent: HTMLElement): void {
+    const pageBtnsBlock = createElem('div', 'page-btns') as HTMLElement;
+    const pageBtnPrev = createElem('button', 'page-btns__prev page-btn', pageBtnsBlock, 'prev ←') as HTMLButtonElement;
+    pageBtnPrev.addEventListener('click', () => this.changePage());
+    const pageBtnNext = createElem('button', 'page-btns__next page-btn', pageBtnsBlock, '→ next') as HTMLButtonElement;
+    pageBtnNext.addEventListener('click', () => this.changePage(true));
+
+    parent.append(pageBtnsBlock);
   }
 
   selectCar(car: ICarObj, carBlock: HTMLElement): void {
@@ -198,11 +222,11 @@ export default class View {
     window.app.dataBase.deleteCar(carId).then(() => this.updateGarage());
   }
 
-  startCar(car: ICarObj, carImage: HTMLElement): void {
+  startCar(car: ICarObj): void {
     const startBtnElem = this.carElemsArr[`btn_start_${car.id}`];
 
     if (!startBtnElem.classList.contains('unable')) {
-      window.app.game.startCar(car.id, carImage);
+      window.app.game.startCar(car.id);
 
       startBtnElem.classList.add('unable');
       this.carElemsArr[`btn_stop_${car.id}`].classList.remove('unable');
@@ -242,6 +266,24 @@ export default class View {
     this.clearPage();
     this.garageBtn.classList.remove('active');
     this.winnersBtn.classList.add('active');
+
+    const winnersContainer = createElem('div', 'winners', this.main) as HTMLElement;
+
+    const winnersTitles = createElem('div', 'winners__titles', winnersContainer) as HTMLElement;
+    const winnersTitle = createElem('div', 'winners__title', winnersTitles) as HTMLElement;
+    createElem('span', 'winners__title', winnersTitle, 'Winners (') as HTMLElement;
+    winnersTitle.append(this.winnersTotal);
+    createElem('span', 'winners__title', winnersTitle, ')') as HTMLElement;
+
+    const winnersPage = createElem('div', 'winners__page', winnersTitles) as HTMLElement;
+    createElem('span', 'winners__page-text', winnersPage, 'Page #') as HTMLElement;
+    winnersPage.append(this.winnersPageNum);
+
+    winnersContainer.append(this.winnersBlock);
+
+    this.drawPageBtns(this.main);
+
+    this.updateWinners();
   }
 
   setCar(formEl: HTMLFormElement, isCreate: boolean): void {
@@ -282,11 +324,12 @@ export default class View {
   }
 
   updateGarage(): void {
-    window.app.dataBase.getCars(this.currentPage, limitCarsPerPage).then((resp) => {
+    console.log('this.currentGaragePage=', this.currentGaragePage);
+    window.app.dataBase.getCars(this.currentGaragePage, LIMIT_CARS_PER_PAGE).then((resp) => {
       this.cars = resp.carsArr;
       this.totalCars = resp.total;
       this.garageTotal.textContent = `${resp.total}`;
-      this.garagePageNum.textContent = `${this.currentPage}`;
+      this.garagePageNum.textContent = `${this.currentGaragePage}`;
       this.drawCars();
     });
   }
@@ -325,16 +368,36 @@ export default class View {
   }
 
   changePage(isNext?: boolean): void {
+    const isGaragePage = this.page === pages.garage;
+    const currPageNum = isGaragePage ? this.currentGaragePage : this.currentWinnersPage;
+
     if (isNext) {
-      const pagesAmount = Math.ceil(this.totalCars / limitCarsPerPage);
-      if (this.currentPage + 1 > pagesAmount) return;
-      this.currentPage++;
-    } else if (this.currentPage > 1) {
-      this.currentPage--;
+      const pagesAmountFraction = isGaragePage
+        ? this.totalCars / LIMIT_CARS_PER_PAGE
+        : this.totalWinners / LIMIT_WINNERS_PER_PAGE;
+      const pagesAmount = Math.ceil(pagesAmountFraction);
+      const nextPageNum = isGaragePage ? this.currentGaragePage + 1 : this.currentWinnersPage + 1;
+      if (nextPageNum > pagesAmount) return;
+      if (isGaragePage) {
+        this.currentGaragePage++;
+      } else {
+        this.currentWinnersPage++;
+      }
+    } else if (currPageNum > 1) {
+      if (isGaragePage) {
+        this.currentGaragePage--;
+      } else {
+        this.currentWinnersPage--;
+      }
     } else {
       return;
     }
-    this.updateGarage();
+
+    if (isGaragePage) {
+      this.updateGarage();
+    } else {
+      this.updateWinners();
+    }
   }
 
   showWinner(carTitle: string, time: number): void {
@@ -342,7 +405,7 @@ export default class View {
 
     const messageWrapper = createElem('div', 'message__wrapper', messageBckgr);
     const messageWindow = createElem('div', 'message__window mssg', messageWrapper);
-    const message = `Your fastest car is ${carTitle}! Time: ${(time / mssInSec).toFixed(3)} sec`;
+    const message = `Your fastest car is ${carTitle}! Time: ${(time / MSS_IN_SEC).toFixed(3)} sec`;
     createElem('div', 'mssg__text', messageWindow, message);
 
     createElem('button', 'mssg__btn', messageWindow, 'Super!');
@@ -357,5 +420,20 @@ export default class View {
     if ((event.target as HTMLElement).classList.contains('mssg__btn')) {
       (event.currentTarget as HTMLElement).remove();
     }
+  }
+
+  updateWinners(): void {
+    console.log('this.currentWinnersPage=', this.currentWinnersPage);
+    window.app.dataBase.getWinners(this.currentWinnersPage, LIMIT_WINNERS_PER_PAGE).then((resp) => {
+      this.winners = resp.winnersArr;
+      this.totalWinners = resp.total;
+      this.winnersTotal.textContent = `${resp.total}`;
+      this.winnersPageNum.textContent = `${this.currentWinnersPage}`;
+      this.drawWinnersTable(resp.winnersArr);
+    });
+  }
+
+  drawWinnersTable(winnersArr: IWinner[]): void {
+    console.log('winnersArr=', winnersArr);
   }
 }

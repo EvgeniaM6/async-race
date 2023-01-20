@@ -1,30 +1,24 @@
-import { statuses } from '../constants';
+import { MSS_IN_SEC, statuses } from '../constants';
 import { ICarObj } from '../models';
 
 export default class Game {
-  async startCar(id: number, carImage: HTMLElement): Promise<void> {
+  async startCar(id: number): Promise<void> {
     const startResult = await window.app.dataBase.createEnginePromise(id, statuses.started);
-    this.driveCar(id, startResult, carImage);
+    this.driveCar(id, startResult);
   }
 
-  async driveCar(
-    id: number,
-    startResult: Response,
-    carImage: HTMLElement,
-    isRace?: boolean,
-    indexCarInArr?: number
-  ): Promise<void> {
+  async driveCar(id: number, startResult: Response, isRace?: boolean, indexCarInArr?: number): Promise<void> {
     const startVal = await startResult.json();
     const time = startVal.distance / startVal.velocity;
 
-    this.prepareAnimation(time, carImage);
+    this.prepareAnimation(time, id);
 
     const drivePromise = window.app.dataBase.createEnginePromise(id, statuses.drive);
 
-    this.startAnimation(carImage);
+    this.startAnimation(id);
 
     const indexCarInCarsArr = typeof indexCarInArr === 'undefined' ? -1 : indexCarInArr;
-    window.app.dataBase.driveCar(drivePromise, indexCarInCarsArr, carImage, id, time, isRace);
+    window.app.dataBase.driveCar(drivePromise, indexCarInCarsArr, id, time, isRace);
   }
 
   async stopCar(id: number): Promise<void> {
@@ -38,18 +32,19 @@ export default class Game {
 
     window.app.dataBase.winner = -1;
 
-    const carImgArr = Array.from(document.querySelectorAll('.car__image')) as HTMLElement[];
     const startResponseArr = await Promise.all(startPromisesArr);
     startResponseArr.forEach(async (startResponse, i) => {
-      this.driveCar(carsArr[i].id, startResponse, carImgArr[i], true, i);
+      this.driveCar(carsArr[i].id, startResponse, true, i);
     });
   }
 
-  prepareAnimation(animationTime: number, carImage: HTMLElement): void {
-    carImage.style.animationDuration = `${Math.round(animationTime / 1000)}s`;
+  prepareAnimation(animationTime: number, id: number): void {
+    const carImage = window.app.view.carElemsArr[`img_${id}`];
+    carImage.style.animationDuration = `${Math.round(animationTime / MSS_IN_SEC)}s`;
   }
 
-  startAnimation(carImage: HTMLElement): void {
+  startAnimation(id: number): void {
+    const carImage = window.app.view.carElemsArr[`img_${id}`];
     carImage.classList.add('drive');
   }
 }
