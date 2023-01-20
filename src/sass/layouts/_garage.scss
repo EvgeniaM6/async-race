@@ -1,11 +1,42 @@
-.active {
-  background-color: green;
+.manage {
+  &__block {
+    display: flex;
+    align-items: center;
+  }
+
+  &__form {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+  }
+
+  .form__btn {
+    background: $color-primary;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    transition: all .5s ease;
+
+    &:hover {
+      background: $color-primary-hover;
+    }
+
+    &.unable {
+      opacity: .5;
+      cursor: auto;
+  
+      &:hover {
+        background: $color-primary;
+      }
+    }
+  }
 }
+
 
 .selected {
   border: 1px solid red;
 }
 
 .car__image-block {
-  border-bottom: 3px solid #2f2f2f;
+  border-bottom: 3px solid $color-road;
 }

@@ -1,3 +1,29 @@
 body {
   background-color: #b8ffa8;
 }
+
+button {
+  cursor: pointer;
+}
+
+.nav__button {
+  background: $color-button;
+  border: 5px solid $color-button;
+  border-radius: 20px;
+  padding: 10px 20px;
+  margin-right: 10px;
+  transition: all .5s ease;
+
+  &:last-child {
+    margin-right: 0;
+  }
+  
+  &.active {
+    border: 5px solid $color-button-active;
+  }
+
+  &:hover {
+    background: $color-button-hover;
+  }
+}
+
