@@ -1,4 +1,4 @@
-export const serverBaseUrl = 'http://127.0.0.1:3000';
+export const SERVER_BASE_URL = 'http://127.0.0.1:3000';
 
 export const paths = {
   garage: '/garage',
@@ -15,6 +15,8 @@ export const queryParameters = {
   limit: '_limit',
   id: 'id',
   status: 'status',
+  sort: '_sort',
+  order: '_order',
 };
 
 export const statuses = {

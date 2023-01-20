@@ -1,3 +1,4 @@
 import { createElem } from './createElem';
+import { carTemplate } from './carTemplate';
 
-export { createElem };
+export { carTemplate, createElem };

@@ -1,18 +1,19 @@
-import { carTemplate } from './carTemplate';
+import { garageBtns } from './garageBtns';
 import { carActs, inputTypes } from './inputType';
-import { limitCarsPerPage, mssInSec, pages } from './pages';
-import { headers, paths, queryParameters, serverBaseUrl, statuses } from './path';
+import { LIMIT_CARS_PER_PAGE, LIMIT_WINNERS_PER_PAGE, MSS_IN_SEC, pages } from './pages';
+import { headers, paths, queryParameters, SERVER_BASE_URL, statuses } from './path';
 
 export {
   carActs,
-  carTemplate,
+  garageBtns,
   headers,
   inputTypes,
-  limitCarsPerPage,
-  mssInSec,
+  LIMIT_CARS_PER_PAGE,
+  LIMIT_WINNERS_PER_PAGE,
+  MSS_IN_SEC,
   pages,
   paths,
   queryParameters,
-  serverBaseUrl,
+  SERVER_BASE_URL,
   statuses,
 };
