@@ -6,10 +6,12 @@ import {
   LIMIT_WINNERS_PER_PAGE,
   MSS_IN_SEC,
   pages,
+  sortBy,
+  sortDirection,
   statuses,
 } from '../constants';
 import { ICarElemObj, ICarObj, IUpdInputElements, IWinner } from '../models';
-import { carTemplate, createElem } from '../utilities';
+import { carTemplate, createElem, generateRandomCarName, generateRandomColor } from '../utilities';
 
 export default class View {
   main: HTMLElement = createElem('main', 'main');
@@ -33,6 +35,10 @@ export default class View {
   winners: IWinner[] = [];
   updateInputs: IUpdInputElements = {};
   carElemsArr: ICarElemObj = {};
+  arrowSpanWins = createElem('span');
+  arrowSpanTime = createElem('span');
+  currentSortByParam = '';
+  currentSortDir = '';
 
   start(): void {
     this.drawApp();
@@ -324,7 +330,6 @@ export default class View {
   }
 
   updateGarage(): void {
-    console.log('this.currentGaragePage=', this.currentGaragePage);
     window.app.dataBase.getCars(this.currentGaragePage, LIMIT_CARS_PER_PAGE).then((resp) => {
       this.cars = resp.carsArr;
       this.totalCars = resp.total;
@@ -364,7 +369,13 @@ export default class View {
   }
 
   generateCars(): void {
-    //
+    for (let i = 0; i < 100; i += 1) {
+      const name = generateRandomCarName();
+      const colorStr = generateRandomColor();
+      window.app.dataBase.createCar(name, colorStr);
+    }
+
+    this.updateGarage();
   }
 
   changePage(isNext?: boolean): void {
@@ -401,6 +412,7 @@ export default class View {
   }
 
   showWinner(carTitle: string, time: number): void {
+    document.body.style.overflow = 'hidden';
     const messageBckgr = createElem('div', 'message');
 
     const messageWrapper = createElem('div', 'message__wrapper', messageBckgr);
@@ -416,6 +428,7 @@ export default class View {
 
   closeMessage(event: Event): void {
     event.stopPropagation();
+    document.body.style.overflow = 'auto';
     if (!event.target || !event.currentTarget) return;
     if ((event.target as HTMLElement).classList.contains('mssg__btn')) {
       (event.currentTarget as HTMLElement).remove();
@@ -423,17 +436,70 @@ export default class View {
   }
 
   updateWinners(): void {
-    console.log('this.currentWinnersPage=', this.currentWinnersPage);
-    window.app.dataBase.getWinners(this.currentWinnersPage, LIMIT_WINNERS_PER_PAGE).then((resp) => {
-      this.winners = resp.winnersArr;
-      this.totalWinners = resp.total;
-      this.winnersTotal.textContent = `${resp.total}`;
-      this.winnersPageNum.textContent = `${this.currentWinnersPage}`;
-      this.drawWinnersTable(resp.winnersArr);
-    });
+    window.app.dataBase
+      .getWinners(this.currentWinnersPage, LIMIT_WINNERS_PER_PAGE, this.currentSortByParam, this.currentSortDir)
+      .then((resp) => {
+        this.winners = resp.winnersArr;
+        this.totalWinners = resp.total;
+        this.winnersTotal.textContent = `${resp.total}`;
+        this.winnersPageNum.textContent = `${this.currentWinnersPage}`;
+        this.drawWinnersTable(resp.winnersArr);
+      });
   }
 
   drawWinnersTable(winnersArr: IWinner[]): void {
-    console.log('winnersArr=', winnersArr);
+    this.winnersBlock.innerHTML = '';
+    const table = createElem('table', 'winners__table table');
+
+    const tableHead = createElem('thead', 'table__head', table);
+    createElem('th', 'table__th', tableHead, 'Number');
+    createElem('th', 'table__th', tableHead, 'car');
+    createElem('th', 'table__th', tableHead, 'name');
+    const carWinsColumn = createElem('th', 'table__th table__btn wins', tableHead);
+    createElem('span', null, carWinsColumn, 'wins');
+    carWinsColumn.append(this.arrowSpanWins);
+    carWinsColumn.addEventListener('click', () => this.sortBy(sortBy.wins));
+    const carTime = createElem('th', 'table__th table__btn time', tableHead);
+    createElem('span', null, carTime, 'best time (seconds)');
+    carTime.append(this.arrowSpanTime);
+    carTime.addEventListener('click', () => this.sortBy(sortBy.time));
+
+    if (this.currentSortByParam === sortBy.time) {
+      this.arrowSpanTime.textContent = this.currentSortDir === sortDirection.ASC ? '↓' : '↑';
+      this.arrowSpanWins.textContent = '';
+    } else if (this.currentSortByParam === sortBy.wins) {
+      this.arrowSpanTime.textContent = '';
+      this.arrowSpanWins.textContent = this.currentSortDir === sortDirection.ASC ? '↓' : '↑';
+    }
+
+    winnersArr.forEach((winner, i) => {
+      const car = this.cars.find((car) => car.id === winner.id);
+      if (!car) return;
+      const tableRow = createElem('tr', '', table);
+      createElem('td', '', tableRow, `${i + 1}`);
+      const carImg = createElem('td', '', tableRow);
+      const carImgBlock = createElem('div', 'car__image', carImg);
+      carImgBlock.innerHTML = carTemplate(car.color);
+      createElem('td', '', tableRow, `${car.name}`);
+      createElem('td', '', tableRow, `${winner.wins}`);
+      createElem('td', '', tableRow, `${winner.time}`);
+    });
+
+    this.winnersBlock.append(table);
+  }
+
+  sortBy(sortParam: string): void {
+    if (this.currentSortByParam === sortParam) {
+      if (this.currentSortDir === sortDirection.ASC) {
+        this.currentSortDir = sortDirection.DESC;
+      } else {
+        this.currentSortDir = sortDirection.ASC;
+      }
+    } else {
+      this.currentSortByParam = sortParam;
+      this.currentSortDir = sortDirection.ASC;
+    }
+
+    this.updateWinners();
   }
 }

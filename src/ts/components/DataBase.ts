@@ -202,7 +202,6 @@ export default class DataBase {
     const timeInSec = +(time / MSS_IN_SEC).toFixed(2);
 
     const response = await fetch(url);
-    console.log('addWinner response=', response);
     switch (response.status) {
       case ERespStatusCode.Ok:
         {
@@ -219,7 +218,6 @@ export default class DataBase {
             },
             body: JSON.stringify(updateWinner),
           });
-          console.log('respUpd=', respUpd);
         }
         break;
       case ERespStatusCode.NotFound:
@@ -237,7 +235,6 @@ export default class DataBase {
             },
             body: JSON.stringify(createWinner),
           });
-          console.log('respCrt=', respCrt);
         }
         break;
 
