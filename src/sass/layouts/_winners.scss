@@ -3,6 +3,7 @@
 
   &__head {
     background-color: $color-primary;
+    font-size: 16px;
   }
 
   &__th {
@@ -35,7 +36,8 @@
   &__btn {
     cursor: pointer;
     text-decoration: underline;
-    text-decoration-color: $color-light;
+    font-size: 18px;
+    transition: all .3s ease;
 
     &:hover {
       background-color: $color-primary-hover;

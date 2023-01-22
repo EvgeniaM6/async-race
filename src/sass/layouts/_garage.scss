@@ -18,6 +18,15 @@
   .form {
     &__text {
       margin-right: 5px;
+      padding: 5px 10px;
+
+      &:focus {
+        outline: 3px solid $color-primary;
+      }
+
+      &:disabled {
+        outline: none;
+      }
     }
   
     &__color {
@@ -190,8 +199,22 @@
     }
 
     &__image-block {
+      position: relative;
       border-bottom: 3px solid $color-road;
       flex: 2;
+    }
+
+    &__finish {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background-image: url(../assets/img/png/flag.png);
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      z-index: 2;
+      bottom: 0;
+      right: 125px;
     }
   }
 }
