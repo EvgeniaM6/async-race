@@ -10,7 +10,7 @@ export const garageBtns = [
   },
   {
     btnType: garageBtnTypes.stop,
-    txtContent: 'return',
+    txtContent: 'reset',
   },
 ];
 

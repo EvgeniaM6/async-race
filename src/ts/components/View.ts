@@ -49,6 +49,7 @@ export default class View {
     color: '',
   };
   canRace = true;
+  changePageBtns: ICarElemObj = {};
 
   start(): void {
     this.drawApp();
@@ -216,6 +217,7 @@ export default class View {
     });
 
     const carImageBlock = createElem('div', 'car__image-block', manageBlock);
+    createElem('div', 'car__finish', carImageBlock);
     const carImage = createElem('div', 'car__image', carImageBlock);
     carImage.innerHTML = carTemplate(car.color);
     this.carElemsArr[`img_${car.id}`] = carImage;
@@ -230,7 +232,38 @@ export default class View {
     const pageBtnNext = createElem('button', 'page-btns__next page-btn', pageBtnsBlock, '→ next') as HTMLButtonElement;
     pageBtnNext.addEventListener('click', () => this.changePage(true));
 
+    this.changePageBtns['pageBtnPrev'] = pageBtnPrev;
+    this.changePageBtns['pageBtnNext'] = pageBtnNext;
+
     parent.append(pageBtnsBlock);
+  }
+
+  updatePageBtns(): void {
+    const pageBtnPrev = this.changePageBtns['pageBtnPrev'];
+    const pageBtnNext = this.changePageBtns['pageBtnNext'];
+
+    const isGaragePage = this.page === pages.garage;
+    const currPageNum = isGaragePage ? this.currentGaragePage : this.currentWinnersPage;
+    if (currPageNum === 1) {
+      if (!pageBtnPrev.classList.contains('unable')) {
+        pageBtnPrev.classList.add('unable');
+      }
+    } else {
+      pageBtnPrev.classList.remove('unable');
+    }
+
+    const pagesAmountFraction = isGaragePage
+      ? this.totalCars / LIMIT_CARS_PER_PAGE
+      : this.totalWinners / LIMIT_WINNERS_PER_PAGE;
+    const pagesAmount = Math.ceil(pagesAmountFraction);
+    const nextPageNum = currPageNum + 1;
+    if (nextPageNum > pagesAmount) {
+      if (!pageBtnNext.classList.contains('unable')) {
+        pageBtnNext.classList.add('unable');
+      }
+    } else {
+      pageBtnNext.classList.remove('unable');
+    }
   }
 
   selectCar(car: ICarObj, carBlock: HTMLElement): void {
@@ -385,7 +418,10 @@ export default class View {
         this.garagePageNum.textContent = `${this.currentGaragePage}`;
         this.drawCars();
       })
-      .then(() => this.updateManageBtns());
+      .then(() => {
+        this.updateManageBtns();
+        this.updatePageBtns();
+      });
   }
 
   race(): void {
@@ -502,6 +538,7 @@ export default class View {
         this.winnersTotal.textContent = `${resp.total}`;
         this.winnersPageNum.textContent = `${this.currentWinnersPage}`;
         this.drawWinnersTable(resp.winnersArr);
+        this.updatePageBtns();
       });
   }
 
