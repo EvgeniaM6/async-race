@@ -10,7 +10,7 @@ import {
   sortDirection,
   statuses,
 } from '../constants';
-import { ICarElemObj, ICarObj, IUpdInputElements, IWinner } from '../models';
+import { ICar, ICarElemObj, ICarObj, IUpdInputElements, IWinner } from '../models';
 import { carTemplate, createElem, generateRandomCarName, generateRandomColor } from '../utilities';
 
 export default class View {
@@ -25,8 +25,9 @@ export default class View {
   winnersPageNum = createElem('span', 'winners__page-num') as HTMLElement;
   carsBlock = createElem('div', 'garage__cars cars') as HTMLElement;
   winnersBlock = createElem('div', 'winners__cars') as HTMLElement;
-  raceBtn = createElem('button', `btn-race`, null, 'race') as HTMLButtonElement;
-  resetBtn = createElem('button', `btn-reset unable`, null, 'reset') as HTMLButtonElement;
+  raceBtn = createElem('button', `mng-btns__drive btn-race`, null, 'race') as HTMLButtonElement;
+  resetBtn = createElem('button', `mng-btns__drive btn-reset unable`, null, 'reset') as HTMLButtonElement;
+  generateBtn = createElem('button', `mng-btns__generate`, null, 'generate') as HTMLButtonElement;
   currentGaragePage = 1;
   currentWinnersPage = 1;
   totalCars = 0;
@@ -34,11 +35,16 @@ export default class View {
   cars: ICarObj[] = [];
   winners: IWinner[] = [];
   updateInputs: IUpdInputElements = {};
+  createBtn: HTMLButtonElement | null = null;
   carElemsArr: ICarElemObj = {};
-  arrowSpanWins = createElem('span');
-  arrowSpanTime = createElem('span');
+  arrowSpanWins = createElem('span', 'arrow-symbol');
+  arrowSpanTime = createElem('span', 'arrow-symbol');
   currentSortByParam = '';
   currentSortDir = '';
+  createInputData: ICar = {
+    name: '',
+    color: '',
+  };
 
   start(): void {
     this.drawApp();
@@ -78,12 +84,12 @@ export default class View {
     this.drawManageButtons(manageBlock);
 
     const garageBlock = createElem('div', 'garage', this.main) as HTMLElement;
-    const garageTitle = createElem('div', 'garage__title', garageBlock) as HTMLElement;
+    const garageTitle = createElem('div', 'garage__title page-title', garageBlock) as HTMLElement;
     createElem('span', 'garage__title', garageTitle, 'Garage (') as HTMLElement;
     garageTitle.append(this.garageTotal);
     createElem('span', 'garage__title', garageTitle, ')') as HTMLElement;
 
-    const garagePage = createElem('div', 'garage__page', garageBlock) as HTMLElement;
+    const garagePage = createElem('div', 'garage__page page-num', garageBlock) as HTMLElement;
     createElem('span', 'garage__page-text', garagePage, 'Page #') as HTMLElement;
     garagePage.append(this.garagePageNum);
 
@@ -98,14 +104,17 @@ export default class View {
     const block = createElem('div', `manage__block ${blockTitle}`, parent) as HTMLElement;
     const form = createElem('form', `manage__form form`, block) as HTMLFormElement;
 
-    const titleInput = createElem('input', `${blockTitle}-form__title`, form) as HTMLInputElement;
+    const titleInput = createElem('input', `${blockTitle}-form__title form__text`, form) as HTMLInputElement;
     titleInput.type = inputTypes.text;
     if (blockTitle === carActs.update) {
       titleInput.disabled = !this.selectedId;
       this.updateInputs.textInput = titleInput;
+    } else {
+      titleInput.addEventListener('input', (e) => this.saveCreateText(e.target as HTMLInputElement));
+      titleInput.value = this.createInputData.name;
     }
 
-    const colorInput = createElem('input', `${blockTitle}-form__color`, form) as HTMLInputElement;
+    const colorInput = createElem('input', `${blockTitle}-form__color form__color`, form) as HTMLInputElement;
     colorInput.type = inputTypes.color;
     if (blockTitle === carActs.update) {
       colorInput.disabled = !this.selectedId;
@@ -117,6 +126,9 @@ export default class View {
         });
       }
       this.updateInputs.colorInput = colorInput;
+    } else {
+      colorInput.addEventListener('input', (e) => this.saveCreateText(e.target as HTMLInputElement));
+      colorInput.value = this.createInputData.color;
     }
 
     const button = createElem('button', `${blockTitle}__button form__btn`, block, blockTitle) as HTMLButtonElement;
@@ -125,7 +137,10 @@ export default class View {
         button.classList.add('unable');
       }
       this.updateInputs.button = button;
+    } else {
+      this.createBtn = button;
     }
+
     const isCreate = blockTitle === carActs.create;
     button.addEventListener('click', () => this.setCar(form, isCreate));
   }
@@ -139,8 +154,8 @@ export default class View {
     manageAllCarsBlock.append(this.resetBtn);
     this.resetBtn.addEventListener('click', () => this.reset());
 
-    const generateBtn = createElem('button', `mng-btns-generate`, manageBtns, 'generate') as HTMLButtonElement;
-    generateBtn.addEventListener('click', () => this.generateCars());
+    manageBtns.append(this.generateBtn);
+    this.generateBtn.addEventListener('click', () => this.generateCars());
 
     parent.append(manageBtns);
   }
@@ -163,9 +178,9 @@ export default class View {
 
     const settingsBlock = createElem('div', 'car__settings', carBlock) as HTMLElement;
     const settingsBtns = createElem('div', 'car__settings-btns car-btns', settingsBlock) as HTMLElement;
-    const selectBtn = createElem('button', 'car-btns__select', settingsBtns, 'select') as HTMLElement;
+    const selectBtn = createElem('button', 'car-btns__select car-btns__btn', settingsBtns, 'select') as HTMLElement;
     selectBtn.addEventListener('click', () => this.selectCar(car, carBlock));
-    const removeBtn = createElem('button', 'car-btns__remove', settingsBtns, 'remove') as HTMLElement;
+    const removeBtn = createElem('button', 'car-btns__remove car-btns__btn', settingsBtns, 'remove') as HTMLElement;
     removeBtn.addEventListener('click', () => this.removeCar(car.id));
     createElem('div', 'car__title', settingsBlock, car.name) as HTMLElement;
 
@@ -222,6 +237,7 @@ export default class View {
       this.updateInputs.button.classList.remove('unable');
     }
     carBlock.classList.add('selected');
+    this.raceBtn.classList.add('unable');
   }
 
   removeCar(carId: number): void {
@@ -257,12 +273,22 @@ export default class View {
     }
     this.carElemsArr[`btn_start_${car.id}`].classList.remove('unable');
 
+    this.updateManageBtns();
+  }
+
+  updateManageBtns(): void {
     const canRace = this.cars.every((car) => {
       const startBtnElem = this.carElemsArr[`btn_start_${car.id}`];
       return !startBtnElem.classList.contains('unable');
     });
+
     if (canRace) {
+      this.createBtn?.classList.remove('unable');
+      this.generateBtn.classList.remove('unable');
       this.raceBtn.classList.remove('unable');
+      if (!this.resetBtn.classList.contains('unable')) {
+        this.resetBtn.classList.add('unable');
+      }
     }
   }
 
@@ -272,16 +298,17 @@ export default class View {
     this.clearPage();
     this.garageBtn.classList.remove('active');
     this.winnersBtn.classList.add('active');
+    this.reset();
 
     const winnersContainer = createElem('div', 'winners', this.main) as HTMLElement;
 
     const winnersTitles = createElem('div', 'winners__titles', winnersContainer) as HTMLElement;
-    const winnersTitle = createElem('div', 'winners__title', winnersTitles) as HTMLElement;
+    const winnersTitle = createElem('div', 'winners__title page-title', winnersTitles) as HTMLElement;
     createElem('span', 'winners__title', winnersTitle, 'Winners (') as HTMLElement;
     winnersTitle.append(this.winnersTotal);
     createElem('span', 'winners__title', winnersTitle, ')') as HTMLElement;
 
-    const winnersPage = createElem('div', 'winners__page', winnersTitles) as HTMLElement;
+    const winnersPage = createElem('div', 'winners__page page-num', winnersTitles) as HTMLElement;
     createElem('span', 'winners__page-text', winnersPage, 'Page #') as HTMLElement;
     winnersPage.append(this.winnersPageNum);
 
@@ -306,7 +333,10 @@ export default class View {
   }
 
   createCar(name: string, color: string, titleInputEl: HTMLInputElement): void {
+    if (this.createBtn?.classList.contains('unable')) return;
+
     window.app.dataBase.createCar(name, color).then(() => {
+      this.createInputData.name = this.createInputData.color = '';
       this.updateGarage();
       titleInputEl.value = '';
     });
@@ -326,21 +356,28 @@ export default class View {
           this.updateInputs.button.classList.add('unable');
         }
       }
+
+      this.raceBtn.classList.remove('unable');
     });
   }
 
   updateGarage(): void {
-    window.app.dataBase.getCars(this.currentGaragePage, LIMIT_CARS_PER_PAGE).then((resp) => {
-      this.cars = resp.carsArr;
-      this.totalCars = resp.total;
-      this.garageTotal.textContent = `${resp.total}`;
-      this.garagePageNum.textContent = `${this.currentGaragePage}`;
-      this.drawCars();
-    });
+    window.app.dataBase
+      .getCars(this.currentGaragePage, LIMIT_CARS_PER_PAGE)
+      .then((resp) => {
+        this.cars = resp.carsArr;
+        this.totalCars = resp.total;
+        this.garageTotal.textContent = `${resp.total}`;
+        this.garagePageNum.textContent = `${this.currentGaragePage}`;
+        this.drawCars();
+      })
+      .then(() => this.updateManageBtns());
   }
 
   race(): void {
     if (this.raceBtn.classList.contains('unable')) return;
+    this.createBtn?.classList.add('unable');
+    this.generateBtn.classList.add('unable');
     window.app.game.race(this.cars);
 
     this.cars.forEach((car) => {
@@ -366,9 +403,14 @@ export default class View {
       this.resetBtn.classList.add('unable');
     }
     this.raceBtn.classList.remove('unable');
+
+    this.createBtn?.classList.remove('unable');
+    this.generateBtn.classList.remove('unable');
   }
 
   generateCars(): void {
+    if (this.generateBtn.classList.contains('unable')) return;
+
     for (let i = 0; i < 100; i += 1) {
       const name = generateRandomCarName();
       const colorStr = generateRandomColor();
@@ -387,7 +429,7 @@ export default class View {
         ? this.totalCars / LIMIT_CARS_PER_PAGE
         : this.totalWinners / LIMIT_WINNERS_PER_PAGE;
       const pagesAmount = Math.ceil(pagesAmountFraction);
-      const nextPageNum = isGaragePage ? this.currentGaragePage + 1 : this.currentWinnersPage + 1;
+      const nextPageNum = currPageNum + 1;
       if (nextPageNum > pagesAmount) return;
       if (isGaragePage) {
         this.currentGaragePage++;
@@ -412,7 +454,6 @@ export default class View {
   }
 
   showWinner(carTitle: string, time: number): void {
-    document.body.style.overflow = 'hidden';
     const messageBckgr = createElem('div', 'message');
 
     const messageWrapper = createElem('div', 'message__wrapper', messageBckgr);
@@ -428,7 +469,6 @@ export default class View {
 
   closeMessage(event: Event): void {
     event.stopPropagation();
-    document.body.style.overflow = 'auto';
     if (!event.target || !event.currentTarget) return;
     if ((event.target as HTMLElement).classList.contains('mssg__btn')) {
       (event.currentTarget as HTMLElement).remove();
@@ -472,20 +512,22 @@ export default class View {
       this.arrowSpanWins.textContent = this.currentSortDir === sortDirection.ASC ? '↓' : '↑';
     }
 
-    winnersArr.forEach((winner, i) => {
-      const car = this.cars.find((car) => car.id === winner.id);
-      if (!car) return;
-      const tableRow = createElem('tr', '', table);
-      createElem('td', '', tableRow, `${i + 1}`);
-      const carImg = createElem('td', '', tableRow);
-      const carImgBlock = createElem('div', 'car__image', carImg);
-      carImgBlock.innerHTML = carTemplate(car.color);
-      createElem('td', '', tableRow, `${car.name}`);
-      createElem('td', '', tableRow, `${winner.wins}`);
-      createElem('td', '', tableRow, `${winner.time}`);
-    });
+    window.app.dataBase.getCars().then((carsResp) => {
+      winnersArr.forEach((winner, i) => {
+        const car = carsResp.carsArr.find((car) => car.id === winner.id);
+        if (!car) return;
+        const tableRow = createElem('tr', 'table__tr', table);
+        createElem('td', 'table__td', tableRow, `${i + 1}`);
+        const carImg = createElem('td', 'table__td', tableRow);
+        const carImgBlock = createElem('div', 'car__image', carImg);
+        carImgBlock.innerHTML = carTemplate(car.color);
+        createElem('td', 'table__td', tableRow, `${car.name}`);
+        createElem('td', 'table__td', tableRow, `${winner.wins}`);
+        createElem('td', 'table__td', tableRow, `${winner.time}`);
+      });
 
-    this.winnersBlock.append(table);
+      this.winnersBlock.append(table);
+    });
   }
 
   sortBy(sortParam: string): void {
@@ -501,5 +543,13 @@ export default class View {
     }
 
     this.updateWinners();
+  }
+
+  saveCreateText(inputEl: HTMLInputElement): void {
+    if (inputEl.type === 'text') {
+      this.createInputData.name = inputEl.value;
+    } else {
+      this.createInputData.color = inputEl.value;
+    }
   }
 }

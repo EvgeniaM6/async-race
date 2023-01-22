@@ -1,4 +1,4 @@
-import { headers, MSS_IN_SEC, paths, queryParameters, SERVER_BASE_URL } from '../constants';
+import { headers, MSS_IN_SEC, pages, paths, queryParameters, SERVER_BASE_URL } from '../constants';
 import { EMethod, ERespStatusCode, ICar, ICarObj, ICars, IWinner, IWinners } from '../models';
 
 export default class DataBase {
@@ -128,7 +128,8 @@ export default class DataBase {
 
     switch (response.status) {
       case ERespStatusCode.Ok: {
-        if (time && isRace && !(this.winner + 1)) {
+        const notSwithToAnoterPage = window.app.view.page === pages.garage;
+        if (time && isRace && !(this.winner + 1) && notSwithToAnoterPage) {
           this.winner = idxCarInCarsArr;
           this.showWinner(time);
           this.addWinner(carId, time);

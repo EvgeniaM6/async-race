@@ -13,9 +13,9 @@ export default class Game {
 
     this.prepareAnimation(time, id);
 
-    const drivePromise = window.app.dataBase.createEnginePromise(id, statuses.drive);
-
     this.startAnimation(id);
+
+    const drivePromise = window.app.dataBase.createEnginePromise(id, statuses.drive);
 
     const indexCarInCarsArr = typeof indexCarInArr === 'undefined' ? -1 : indexCarInArr;
     window.app.dataBase.driveCar(drivePromise, indexCarInCarsArr, id, time, isRace);
