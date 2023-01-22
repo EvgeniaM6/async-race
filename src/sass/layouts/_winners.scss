@@ -1,3 +1,50 @@
-.table__btn {
-  cursor: pointer;
+.table {
+  border-collapse: collapse;
+
+  &__head {
+    background-color: $color-primary;
+  }
+
+  &__th {
+    text-transform: capitalize;
+    padding: 10px;
+    border-right: 4px solid $color-bckgr;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  &__tr {
+    border-bottom: 3px dashed $color-primary;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__td {
+    padding: 10px;
+    border-right: 3px dashed $color-primary;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  &__btn {
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: $color-light;
+
+    &:hover {
+      background-color: $color-primary-hover;
+    }
+
+    .arrow-symbol {
+      display: inline-block;
+      min-width: 10px;
+      margin-left: 5px;
+    }
+  }
 }
