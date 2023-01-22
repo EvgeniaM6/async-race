@@ -19,5 +19,31 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    padding: 25px;
+    background: $color-dark;
+    opacity: .8;
+    color: $color-light;
+    border-radius: 20px;
   }
+
+  .mssg {
+    &__text {
+      margin-bottom: 10px;
+    }
+
+    &__btn {
+      width: 100px;
+      padding: 15px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      font-weight: 700;
+      background: $color-primary;
+
+      &:hover {
+        background: $color-primary-hover;
+      }
+    }
+  }
+
 }

@@ -133,6 +133,7 @@ export default class DataBase {
           this.winner = idxCarInCarsArr;
           this.showWinner(time);
           this.addWinner(carId, time);
+          window.app.view.canRace = true;
         }
         break;
       }
@@ -242,5 +243,12 @@ export default class DataBase {
       default:
         break;
     }
+  }
+
+  async deleteWinner(id: number): Promise<void> {
+    const url = `${SERVER_BASE_URL}${paths.winners}/${id}`;
+    await fetch(url, {
+      method: EMethod.Delete,
+    });
   }
 }
