@@ -1,6 +1,9 @@
 import {
+  arrows,
   carActs,
   garageBtns,
+  garageBtnTypes,
+  INITIAL_COLOR,
   inputTypes,
   LIMIT_CARS_PER_PAGE,
   LIMIT_WINNERS_PER_PAGE,
@@ -204,7 +207,7 @@ export default class View {
 
       this.carElemsArr[`btn_${btnData.btnType}_${car.id}`] = btnElem;
 
-      if (btnData.btnType === 'stop') {
+      if (btnData.btnType === garageBtnTypes.stop) {
         btnElem.classList.add('unable');
         btnElem.addEventListener('click', () => this.stopCar(car));
       } else {
@@ -357,7 +360,7 @@ export default class View {
     window.app.dataBase.updateCar(this.selectedId, name, color).then(() => {
       this.updateGarage();
       titleInputEl.value = '';
-      colorInputEl.value = '#000000';
+      colorInputEl.value = INITIAL_COLOR;
       this.selectedId = 0;
       titleInputEl.disabled = true;
       colorInputEl.disabled = true;
@@ -520,11 +523,11 @@ export default class View {
     carTime.addEventListener('click', () => this.sortBy(sortBy.time));
 
     if (this.currentSortByParam === sortBy.time) {
-      this.arrowSpanTime.textContent = this.currentSortDir === sortDirection.ASC ? '↓' : '↑';
+      this.arrowSpanTime.textContent = this.currentSortDir === sortDirection.ASC ? arrows.down : arrows.up;
       this.arrowSpanWins.textContent = '';
     } else if (this.currentSortByParam === sortBy.wins) {
       this.arrowSpanTime.textContent = '';
-      this.arrowSpanWins.textContent = this.currentSortDir === sortDirection.ASC ? '↓' : '↑';
+      this.arrowSpanWins.textContent = this.currentSortDir === sortDirection.ASC ? arrows.down : arrows.up;
     }
 
     window.app.dataBase.getCars().then((carsResp) => {

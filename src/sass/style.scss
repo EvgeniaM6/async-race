@@ -1,14 +1,10 @@
-// abstracts
 @import "./abstracts/constants";
 @import "./abstracts/mixins";
 
-// base
 @import "./base/base";
 
-// components
 @import "./components/car";
 @import "./components/winMessage";
 
-// layouts
 @import "./layouts/garage";
 @import "./layouts/winners";

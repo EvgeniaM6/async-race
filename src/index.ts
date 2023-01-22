@@ -7,6 +7,5 @@ declare global {
   }
 }
 
-console.log('hello');
 window.app = new App();
 window.app.start();

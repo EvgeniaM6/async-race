@@ -24,3 +24,5 @@ export const statuses = {
   stopped: 'stopped',
   drive: 'drive',
 };
+
+export const HEADER_TOTAL = 'X-Total-Count';

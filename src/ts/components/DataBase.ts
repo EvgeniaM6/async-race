@@ -1,4 +1,4 @@
-import { headers, MSS_IN_SEC, pages, paths, queryParameters, SERVER_BASE_URL } from '../constants';
+import { headers, HEADER_TOTAL, MSS_IN_SEC, pages, paths, queryParameters, SERVER_BASE_URL } from '../constants';
 import { EMethod, ERespStatusCode, ICar, ICarObj, ICars, IWinner, IWinners } from '../models';
 
 export default class DataBase {
@@ -21,7 +21,7 @@ export default class DataBase {
 
     try {
       const response = await fetch(url);
-      const carsTotalStr = response.headers.get('X-Total-Count');
+      const carsTotalStr = response.headers.get(HEADER_TOTAL);
       const carsTotalAmount = carsTotalStr ? +carsTotalStr : 0;
       const cars = await response.json();
 
@@ -180,7 +180,7 @@ export default class DataBase {
 
     try {
       const response = await fetch(url);
-      const winnersTotalStr = response.headers.get('X-Total-Count');
+      const winnersTotalStr = response.headers.get(HEADER_TOTAL);
       const winners = await response.json();
       const winnersTotalAmount = winnersTotalStr ? +winnersTotalStr : winners.length;
 
@@ -213,7 +213,7 @@ export default class DataBase {
             wins: winner.wins + 1,
             time: minTime,
           };
-          const respUpd = await fetch(url, {
+          await fetch(url, {
             method: EMethod.Put,
             headers: {
               'Content-Type': headers.json,
@@ -230,7 +230,7 @@ export default class DataBase {
             wins: 1,
             time: timeInSec,
           };
-          const respCrt = await fetch(url, {
+          await fetch(url, {
             method: EMethod.Post,
             headers: {
               'Content-Type': headers.json,
