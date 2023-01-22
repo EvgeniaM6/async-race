@@ -45,6 +45,7 @@ export default class View {
     name: '',
     color: '',
   };
+  canRace = true;
 
   start(): void {
     this.drawApp();
@@ -71,6 +72,7 @@ export default class View {
 
   drawGarage(): void {
     if (this.page === pages.garage) return;
+    if (!this.canRace) return;
     this.page = pages.garage;
     this.clearPage();
     this.garageBtn.classList.add('active');
@@ -229,6 +231,7 @@ export default class View {
   }
 
   selectCar(car: ICarObj, carBlock: HTMLElement): void {
+    if (!this.canRace) return;
     this.selectedId = car.id;
     if (this.updateInputs.textInput && this.updateInputs.colorInput && this.updateInputs.button) {
       this.updateInputs.textInput.disabled = this.updateInputs.colorInput.disabled = false;
@@ -241,10 +244,15 @@ export default class View {
   }
 
   removeCar(carId: number): void {
-    window.app.dataBase.deleteCar(carId).then(() => this.updateGarage());
+    if (!this.canRace) return;
+    window.app.dataBase.deleteCar(carId).then(() => {
+      window.app.dataBase.deleteWinner(carId);
+      this.updateGarage();
+    });
   }
 
   startCar(car: ICarObj): void {
+    if (!this.canRace) return;
     const startBtnElem = this.carElemsArr[`btn_start_${car.id}`];
 
     if (!startBtnElem.classList.contains('unable')) {
@@ -261,6 +269,7 @@ export default class View {
   }
 
   stopCar(car: ICarObj): void {
+    if (!this.canRace) return;
     window.app.dataBase.createEnginePromise(car.id, statuses.stopped);
 
     const carImage = this.carElemsArr[`img_${car.id}`];
@@ -294,6 +303,7 @@ export default class View {
 
   drawWinners(): void {
     if (this.page === pages.winners) return;
+    if (!this.canRace) return;
     this.page = pages.winners;
     this.clearPage();
     this.garageBtn.classList.remove('active');
@@ -320,6 +330,7 @@ export default class View {
   }
 
   setCar(formEl: HTMLFormElement, isCreate: boolean): void {
+    if (!this.canRace) return;
     const [titleInputEl, colorInputEl] = Object.values(formEl.elements) as HTMLInputElement[];
     const [titleValue, colorValue] = [titleInputEl, colorInputEl].map(
       (inputEl): string => (inputEl as HTMLInputElement).value
@@ -375,7 +386,8 @@ export default class View {
   }
 
   race(): void {
-    if (this.raceBtn.classList.contains('unable')) return;
+    if (!this.canRace && this.raceBtn.classList.contains('unable')) return;
+    this.canRace = false;
     this.createBtn?.classList.add('unable');
     this.generateBtn.classList.add('unable');
     window.app.game.race(this.cars);
@@ -395,6 +407,7 @@ export default class View {
   }
 
   reset(): void {
+    if (!this.canRace) return;
     this.cars.forEach((car) => {
       this.stopCar(car);
     });
@@ -409,6 +422,7 @@ export default class View {
   }
 
   generateCars(): void {
+    if (!this.canRace) return;
     if (this.generateBtn.classList.contains('unable')) return;
 
     for (let i = 0; i < 100; i += 1) {
@@ -421,6 +435,7 @@ export default class View {
   }
 
   changePage(isNext?: boolean): void {
+    if (!this.canRace) return;
     const isGaragePage = this.page === pages.garage;
     const currPageNum = isGaragePage ? this.currentGaragePage : this.currentWinnersPage;
 
