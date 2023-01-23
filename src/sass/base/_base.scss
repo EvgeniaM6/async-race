@@ -10,7 +10,10 @@ body {
   background-color: $color-bckgr;
 
   .app {
+    display: flex;
+    flex-direction: column;
     padding: 10px;
+    min-height: 100vh;
   }
 }
 

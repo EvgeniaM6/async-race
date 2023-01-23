@@ -68,6 +68,9 @@ export default class View {
     this.winnersBtn.addEventListener('click', () => this.drawWinners());
 
     appContainer?.append(this.main);
+
+    const footer = createElem('footer', 'footer', appContainer);
+    window.app.footer.drawFooter(footer);
   }
 
   clearPage(): void {
