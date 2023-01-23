@@ -1,0 +1,47 @@
+
+.unable {
+  opacity: 0.7;
+  cursor: initial;
+}
+
+.car__image {
+  display: inline-block;
+  position: relative;
+  left: 0;
+
+  &.drive {
+    animation-name: drive;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+    animation-play-state: running;
+    
+    &.pause {
+      animation-play-state: paused;
+    }
+
+    @include media-tablet {
+      animation-name: drive-tablet;
+    }
+  }
+
+  .car-svg {
+    transform: rotateY(-180deg);
+    width: 100px;
+    height: 62px;
+
+    @include media-tablet {
+      width: 75px;
+      height: 46px;
+    }
+  }
+}
+
+@keyframes drive {
+  from {left: 0%;}
+  to {left: 90%;}
+}
+
+@keyframes drive-tablet {
+  from {left: 0%;}
+  to {left: 81%;}
+}

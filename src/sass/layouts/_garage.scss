@@ -1,0 +1,220 @@
+.manage {
+  &__block {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+
+    &:last-child {
+      margin-bottom: 0px;
+    }
+  }
+
+  &__form {
+    display: flex;
+    align-items: center;
+    margin-right: 5px;
+  }
+
+  .form {
+    &__text {
+      margin-right: 5px;
+      padding: 5px 10px;
+
+      &:focus {
+        outline: 3px solid $color-primary;
+      }
+
+      &:disabled {
+        outline: none;
+      }
+    }
+  
+    &__color {
+      cursor: pointer;
+
+      &:disabled {
+        cursor: default;
+      }
+    }
+  
+    &__btn {
+      background: $color-primary;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 20px;
+      text-transform: uppercase;
+      font-weight: 700;
+      transition: all .5s ease;
+  
+      &:hover {
+        background: $color-primary-hover;
+      }
+  
+      &.unable {
+        opacity: .5;
+        cursor: auto;
+    
+        &:hover {
+          background: $color-primary;
+        }
+      }
+    }
+  }
+
+  .mng-btns {
+    display: flex;
+
+    &__all {
+      margin-right: 5px;
+    }
+
+    &__drive {
+      background: $color-button;
+      border-radius: 20px;
+      padding: 10px 20px;
+      margin-right: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      transition: all .5s ease;
+
+      &:last-child {
+        margin-right: 0;
+      }
+
+      &:hover {
+        background: $color-button-hover;
+      }
+
+      &.unable {
+        opacity: .5;
+        cursor: auto;
+    
+        &:hover {
+          background: $color-button;
+        }
+      }
+    }
+
+    &__generate {
+      background: $color-primary;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 20px;
+      text-transform: uppercase;
+      font-weight: 700;
+      transition: all .5s ease;
+  
+      &:hover {
+        background: $color-primary-hover;
+      }
+    }
+  }
+}
+
+.garage {
+  &__title {
+    font-size: 40px;
+  }
+
+  .car {
+    margin-bottom: 35px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &__settings {
+      display: flex;
+
+      &-btns {
+        margin-right: 10px;
+      }
+    }
+
+    &__title {
+      color: $color-dark;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .car-btns {
+      &__btn {
+        background: $color-secondary;
+        border-radius: 9px;
+        padding: 5px 9px;
+        margin-right: 5px;
+        font-weight: 700;
+        color: $color-light;
+        text-transform: uppercase;
+        transition: all .5s ease;
+
+        &:last-child {
+          margin-right: 0;
+        }
+
+        &:hover {
+          background: $color-secondary-hover;
+        }
+      }
+    }
+
+    &__manage {
+      display: flex;
+      align-items: flex-end;
+      width: 100%;
+    }
+
+    &__manage-btns {
+      display: flex;
+      flex-direction: column;
+      margin-right: 10px;
+    }
+
+    &__btn-manage {
+      background: $color-dark;
+      border-radius: 9px;
+      padding: 5px 9px;
+      margin-bottom: 5px;
+      font-weight: 700;
+      color: $color-light;
+      text-transform: uppercase;
+      transition: all .5s ease;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      &:hover {
+        background: $color-dark-hover;
+      }
+
+      &.unable {
+        opacity: 1;
+        color: $color-secondary;
+
+        &:hover {
+          background: $color-dark;
+        }
+      }
+    }
+
+    &__image-block {
+      position: relative;
+      border-bottom: 3px solid $color-road;
+      flex: 2;
+    }
+
+    &__finish {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background-image: url(../assets/img/png/flag.png);
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      z-index: 2;
+      bottom: 0;
+      right: 125px;
+    }
+  }
+}
